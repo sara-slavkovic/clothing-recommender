@@ -1,3 +1,4 @@
 {:paths ["src" "test"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}}
- :aliases {:run {:main-opts ["-m" "clothing-recommender.core"]}}}
+ :aliases {:run {:main-opts ["-m" "clothing-recommender.core"]}
+           :test {:main-opts ["-e" "(require 'clothing-recommender.core-test) (clojure.test/run-tests 'clothing-recommender.core-test)"]}}}
