@@ -65,6 +65,27 @@
         top-n (take n sorted)]
     (map :product top-n)))
 
+;; order by price ascending
+(defn sort-by-price
+  [products]
+  (sort-by :price products))
+
+;; find cheapest product by category
+(defn cheapest-by-category
+  [products category]
+  (let [filtered (filter #(= (:category %) category) products)]
+    (when (seq filtered)
+      (reduce (fn [min-product p]
+                (if (< (:price p) (:price min-product))
+                  p
+                  min-product))
+              filtered))))
+
+;; find product by name
+(defn find-by-name
+  [products name]
+  (filter #(= (:product-name %) name) products))
+
 (defn -main
       [& _]
       (let [products [{:product-id 1 :product-name "Blue Jeans" :brand "Levis" 
@@ -90,4 +111,12 @@
         (println "\nGroup by Brand:")
         (println (group-by-brand products))
         (println "\nRecommend by Value:")
-        (println (recommend-by-value products 3))))
+        (println (recommend-by-value products 3))
+        (println "\nSort Products by Price:")
+        (println (sort-by-price products))
+        (println "\nCheapest by Category:")
+        (println (cheapest-by-category products "Pants"))
+        (println "\nFind by Name:")
+        (println (find-by-name products "Red Dress"))
+        )
+  )
