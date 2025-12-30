@@ -9,6 +9,7 @@
                  :rating 4.5
                  :category "Women's Fashion"
                  :brand "Adidas"
+                 :product-name "T-shirt"
                  :color "Black"
                  :size "M"}]
     (is (= (dt/decision-tree-score user product) 100))))
