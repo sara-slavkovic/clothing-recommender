@@ -4,7 +4,10 @@
             [clothing-recommender.users :as users]
             [clothing-recommender.product-loader :as product-loader]
             [clothing-recommender.product-repository :as repo]
-            [clothing-recommender.recommendation :as rec]))
+            [clothing-recommender.recommendation :as rec]
+            [clothing-recommender.normalization :as norm]
+            [clothing-recommender.training-data :as td]
+            [clothing-recommender.attribute-analysis :as an]))
 
 ;; clothing recommendation based on temperature
 (defn simple-recommendation
@@ -123,6 +126,11 @@
             products-csv
             (doall (product-loader/load-products
                            "C:\\Users\\Korisnik\\Desktop\\mas clojure\\fashion_products.csv"))
+
+            products-r (repo/find-all)
+            products-n (doall (norm/normalize-products products-r))
+
+            sara-n (norm/normalize-user users/sara products-r)
             ]
 
         (println "Example 1:" (simple-recommendation 10))
@@ -177,5 +185,18 @@
         (println (rec/recommend-for-user users/mihajlo 5))
         (println "\nDecision tree - recommend products for Jelena:")
         (println (rec/recommend-for-user users/jelena 5))
-        )
+
+        ;;normalization
+        (println "\nFirst normalized product:")
+        (println (first products-n))
+        (println "\nNormalized user Sara:")
+        (println (norm/normalize-user users/sara products-r))
+
+        ;;build training data
+        (println "\nTraining data sample:")
+        (println (first (td/build-training-data sara-n products-n)))
+        (println "\nAttribute analysis:")
+        (println (an/analyze-attributes (td/build-training-data sara-n products-n)))
+        ;;rating and price are the strongest attributes for Sara, and color is the weakest 0.39
   )
+)
