@@ -1,5 +1,6 @@
 (ns clothing-recommender.training-data
-  (:require [clothing-recommender.decision-tree :as tree]))
+  (:require [clothing-recommender.decision-tree :as tree]
+            [clothing-recommender.discretization :as disc]))
 
 (defn label-from-score
   "Discretizes score into class label (Quinlan-style)."
@@ -22,6 +23,7 @@
   "Creates training set: normalized attributes + class"
   [user products]
   (map (fn [p]
-         (let [score (tree/decision-tree-score user p)]
-           (feature-vector user p score)))
+         (let [score (tree/decision-tree-score user p)
+               fv (feature-vector user p score)]
+           (disc/discretize-instance fv)))
        products))
