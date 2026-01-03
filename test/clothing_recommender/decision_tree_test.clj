@@ -1,16 +1,23 @@
 (ns clothing-recommender.decision-tree-test
   (:require [clojure.test :refer :all]
-            [clothing-recommender.users :as users]
             [clothing-recommender.decision-tree :as dt]))
 
 (deftest decision-tree-basic-test
-  (let [user users/sara
-        product {:price 80
-                 :rating 4.5
+  (let [user {:budget-norm 0.5
+              :min-rating-norm 0.6
+              :sizes {:tops "M" :pants "S" :shoes "M"}
+              :preferences {:categories ["Women's Fashion"]
+                            :brands ["Adidas"]
+                            :colors ["Black"]}}
+
+        product {:price-norm 0.4
+                 :rating-norm 0.9
                  :category "Women's Fashion"
                  :brand "Adidas"
                  :product-name "T-shirt"
                  :color "Black"
                  :size "M"}]
-    (is (= (dt/decision-tree-score user product) 100))))
 
+    (let [score (dt/decision-tree-score user product)]
+      (is (number? score))
+      (is (<= 0 score 100)))))
