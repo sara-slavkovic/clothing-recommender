@@ -1,10 +1,32 @@
 (ns clothing-recommender.id3
   (:require [clothing-recommender.entropy :as e]))
 
+;;------------------------------
+;; Helper functions
+;; -----------------------------
+
 (defn split-by-attribute
   "Splits dataset by values of an attribute."
   [dataset attribute]
   (group-by attribute dataset))
+
+(defn majority-label
+  "Returns the most frequent label in dataset."
+  [dataset]
+  (->> dataset
+       (map :label)
+       frequencies
+       (apply max-key val)
+       key))
+
+(defn same-label?
+  "Checks if all samples have the same label."
+  [dataset]
+  (apply = (map :label dataset)))
+
+;;-------------------------------
+;; ID3
+;; ------------------------------
 
 (defn information-gain
   "Computes IG(S, A)."
@@ -27,3 +49,25 @@
   (apply max-key
          #(information-gain dataset %)
          attributes))
+
+(defn build-tree
+  "Builds an ID3 decision tree."
+  [dataset attributes]
+  (cond
+    ;; all same label -> leaf
+    (same-label? dataset)
+    (:label (first dataset))
+
+    ;; no attributes left -> majority vote
+    (empty? attributes)
+    (majority-label dataset)
+
+    :else
+    (let [attr (best-attribute dataset attributes)
+          remaining (remove #{attr} attributes)
+          splits (split-by-attribute dataset attr)]
+      {attr
+       (into {}
+             (map (fn [[value subset]]
+                    [value (build-tree subset remaining)])
+                  splits))})))
