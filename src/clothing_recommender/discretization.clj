@@ -4,25 +4,31 @@
 ;; continuous -> discrete
 ;; -----------------------------
 
-(defn price-bin
-  "Discretize normalized price."
-  [x]
-  (cond
-    (< x 0.33) :low
-    (< x 0.66) :medium
-    :else      :high))
+(defn quantiles
+  "Returns cut points for k bins."
+  [values k]
+  (let [sorted (sort values)
+        n      (count sorted)]
+    (map #(nth sorted (int (* % n)))
+         (map #(/ % k) (range 1 k)))))
 
-(defn rating-bin
-  "Discretize normalized rating."
-  [x]
-  (cond
-    (< x 0.4)  :bad
-    (< x 0.7)  :ok
-    :else      :good))
+(defn make-binner
+  [cuts]
+  (fn [x]
+    (cond
+      (< x (first cuts)) :low
+      (< x (second cuts)) :medium
+      :else :high)))
+
+(defn build-discretizers
+  [dataset]
+  (let [prices  (map :price dataset)
+        ratings (map :rating dataset)]
+    {:price-bin  (make-binner (quantiles prices 3))
+     :rating-bin (make-binner (quantiles ratings 3))}))
 
 (defn discretize-instance
-  "Transforms numeric features into discrete attributes."
-  [instance]
+  [instance {:keys [price-bin rating-bin]}]
   (-> instance
       (update :price price-bin)
       (update :rating rating-bin)))
