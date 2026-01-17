@@ -37,7 +37,7 @@
 
 (defn train-model
   [train-data]
-  (id3/build-tree train-data attributes))
+  (id3/build-tree train-data attributes :label))
 
 (defn run-pipeline []
   (let [products (load-products)
