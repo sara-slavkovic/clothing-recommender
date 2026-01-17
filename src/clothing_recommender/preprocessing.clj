@@ -9,30 +9,37 @@
   [dataset attr]
   (every? number? (map attr dataset)))
 
-(defn build-numeric-discretizer
-  "Creates a discretizer function for a numeric attribute."
-  [values]
-  (let [minv (apply min values)
-        maxv (apply max values)
-        step (/ (- maxv minv) 3)]
-    (fn [v]
-      (cond
-        (< v (+ minv step))        :low
-        (< v (+ minv (* 2 step)))  :medium
-        :else                      :high))))
+(defn quantile-cuts
+  "Computes cut points for k bins."
+  [values k]
+  (let [sorted (sort values)
+        n      (count sorted)]
+    (map #(nth sorted (int (* % n)))
+         (map #(/ % k) (range 1 k)))))
+
+(defn make-binner
+  "Returns a function that maps a numeric value to :low/:medium/:high based on cuts."
+  [cuts]
+  (fn [v]
+    (cond
+      (< v (first cuts)) :low
+      (< v (second cuts)) :medium
+      :else :high)))
 
 (defn build-discretizers
-  "Builds discretizers for all numeric attributes."
+  "Builds discretizers for all numeric attributes in dataset using quantiles."
   [dataset label-key]
-  (let [attrs (attributes dataset label-key)]
-    (reduce
-      (fn [acc attr]
-        (if (numeric-attribute? dataset attr)
+  (reduce
+    (fn [acc attr]
+      (if (numeric-attribute? dataset attr)
+        (let [values (vec (map attr dataset))]  ;; materijalizuj sekvencu
           (assoc acc attr
-                     (build-numeric-discretizer (map attr dataset)))
-          acc))
-      {}
-      attrs)))
+                     (-> values
+                         (quantile-cuts 3)
+                         make-binner)))
+        acc))
+    {}
+    (attributes dataset label-key)))
 
 (defn discretize-instance
   [instance discretizers]
