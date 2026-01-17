@@ -13,9 +13,9 @@
   (-> s str/trim str/lower-case keyword))
 
 (defn id-column?
-  "Checks whether column name contains 'id'"
+  "Checks whether column name contains '_id'"
   [k]
-  (str/includes? (name k) "id"))
+  (str/ends-with? (name k) "_id"))
 
 (defn sanitize-headers
   "Lowercases headers, converts to keywords and removes ID columns.
