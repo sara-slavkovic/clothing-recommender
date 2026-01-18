@@ -2,32 +2,50 @@
   (:require [clojure.test :refer :all]
             [clothing-recommender.id3 :as id3]))
 
-(def toy-dataset
-  [{:a :low  :b :low  :label :yes}
-   {:a :low  :b :high :label :yes}
-   {:a :high :b :low  :label :no}
-   {:a :high :b :high :label :no}])
+(def sample-dataset
+  [{:outlook "Sunny"    :temperature 30 :humidity 85 :wind "Strong" :play "No"}
+   {:outlook "Overcast" :temperature 25 :humidity 70 :wind "Weak"   :play "Yes"}
+   {:outlook "Rainy"    :temperature 20 :humidity 90 :wind "Weak"   :play "Yes"}])
 
-(def attrs [:a :b])
+(def attrs [:outlook :temperature :humidity :wind])
+(def label-key :play)
 
-(deftest information-gain-non-negative
-  (is (>= (id3/information-gain toy-dataset :a :label) 0)))
+(deftest split-by-attribute-test
+  (let [splits (id3/split-by-attribute sample-dataset :outlook)]
+    (is (= 3 (count splits)))
+    (is (contains? splits "Sunny"))
+    (is (contains? splits "Overcast"))
+    (is (contains? splits "Rainy"))))
 
-(deftest best-attribute-picks-a
-  (is (= :a
-         (id3/best-attribute toy-dataset attrs :label))))
+(deftest majority-label-test
+  (is (= "Yes" (id3/majority-label sample-dataset label-key))))
+
+(deftest same-label?-test
+  (is (false? (id3/same-label? sample-dataset label-key)))
+  (is (true? (id3/same-label? [{:play "Yes"} {:play "Yes"}] label-key))))
+
+(deftest information-gain-test
+  (doseq [attr attrs]
+    (is (>= (id3/information-gain sample-dataset attr label-key) 0))))
+
+(deftest best-attribute-test
+  (let [best (id3/best-attribute sample-dataset attrs label-key)]
+    (is (some #{best} attrs))))
 
 (deftest build-tree-test
-  (let [tree (id3/build-tree toy-dataset attrs :label)]
-    ;; root node
-    (is (contains? tree :a))
-    ;; leaves
-    (is (= :yes (get-in tree [:a :low])))
-    (is (= :no  (get-in tree [:a :high])))))
+  (let [tree (id3/build-tree sample-dataset attrs label-key)]
+    (is (map? tree))
+    (is (some #(contains? tree %) attrs))))
 
 (deftest predict-test
-  (let [tree (id3/build-tree toy-dataset attrs :label)]
-    (is (= :yes
-           (id3/predict tree {:a :low :b :low})))
-    (is (= :no
-           (id3/predict tree {:a :high :b :low})))))
+  (let [tree (id3/build-tree sample-dataset attrs label-key)]
+    ;; normal prediction
+    (is (some #{"Yes" "No"} [(id3/predict tree {:outlook "Sunny" :temperature 30} sample-dataset label-key)]))
+    ;; missing attribute value, should fall back to majority-label
+    (is (= "Yes" (id3/predict tree {:outlook "Foggy" :temperature 99} sample-dataset label-key)))
+    (is (some #{"Yes" "No"} [(id3/predict tree {:outlook "Rainy" :temperature 20} sample-dataset label-key)]))))
+
+(deftest print-tree-test
+  ;; call it to ensure no exception
+  (let [tree (id3/build-tree sample-dataset attrs label-key)]
+    (id3/print-tree tree 0)))

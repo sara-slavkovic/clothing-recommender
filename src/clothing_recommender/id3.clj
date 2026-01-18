@@ -56,7 +56,7 @@
   (cond
     ;; all same label -> leaf
     (same-label? dataset label-key)
-    (:label (first dataset))
+    (label-key (first dataset))
 
     ;; no attributes left -> majority vote
     (empty? attributes)
@@ -72,14 +72,29 @@
                     [value (build-tree subset remaining label-key)])
                   splits))})))
 
+(defn print-tree
+  ([tree]
+   (print-tree tree 0))
+
+  ([tree indent]
+   (let [pad (apply str (repeat indent "  "))]
+     (if (map? tree)
+       (let [[attr branches] (first tree)]
+         (println pad attr)
+         (doseq [[value subtree] branches]
+           (println pad "=>" value)
+           (print-tree subtree (inc indent))))
+       (println pad "->" tree)))))
+
 (defn predict
-  "Classifies a single instance using trained ID3 tree."
-  [tree instance]
-  (if (keyword? tree)
+  "Classifies a single instance using trained ID3 tree.
+   Returns the majority (default) label if instance value not present in tree branches."
+  [tree instance dataset label-key]
+  (if (not (map? tree))
     tree
     (let [[attr branches] (first tree)
           value (get instance attr)]
       (if-let [subtree (get branches value)]
-        (predict subtree instance)
-        ;; if there's no branch -> nil
-        nil))))
+        (predict subtree instance dataset label-key)
+        ;; if there's no branch -> return majority label of dataset
+        (majority-label dataset label-key)))))
