@@ -47,3 +47,25 @@
     0
     (* 2 (/ (* precision recall)
             (+ precision recall)))))
+
+(defn to-percent
+  "Converts ratio (0–1) to percentage with 2 decimals."
+  [x]
+  (let [v (* 10000.0 (double x))]
+    (/ (Math/round v) 100.0)))
+
+(defn accuracy%
+  [cm]
+  (to-percent (accuracy cm)))
+
+(defn precision%
+  [cm]
+  (to-percent (precision cm)))
+
+(defn recall%
+  [cm]
+  (to-percent (recall cm)))
+
+(defn f1-score%
+  [cm]
+  (to-percent (f1-score (precision cm) (recall cm))))
