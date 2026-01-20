@@ -4,7 +4,8 @@
     [decision-tree-id3.preprocessing :as pre]
     [decision-tree-id3.split :as split]
     [decision-tree-id3.id3 :as id3]
-    [decision-tree-id3.metrics :as metrics]))
+    [decision-tree-id3.metrics :as metrics]
+    [criterium.core :as c]))
 
 ;;-----------------------------------
 ;; Load dataset
@@ -68,6 +69,24 @@
 (def decision-tree
   (id3/build-tree train-data (seq attributes) label-key))
 
+(println "\n--- Benchmarking tree building with quick-bench ---")
+(c/quick-bench
+  (id3/build-tree train-data (seq attributes) label-key))
+
+(println "\n--- Benchmarking tree building with progress reporting ---")
+(c/with-progress-reporting
+  (c/quick-bench
+    (id3/build-tree train-data attributes label-key)))
+
+;; Optional: scalability test
+(def big-train
+  (vec (apply concat (repeat 5 train-data))))
+
+(println "\n--- Benchmarking tree building on larger dataset ---")
+(c/with-progress-reporting
+  (c/quick-bench
+    (id3/build-tree big-train attributes label-key)))
+
 (println "\nDecision tree built successfully.")
 
 ;;-----------------------------------
@@ -118,3 +137,15 @@
 
 ;(println "\nDecision tree structure:")
 ;(id3/print-tree decision-tree)
+
+
+;; -----------------------------------
+;; Benchmark results (Criterium)
+;;
+;; Training dataset:
+;; quick-bench mean execution time: ~86 ms
+;; with-progress-reporting mean execution time: ~89 ms
+;;
+;; Larger dataset (5x duplicated training data):
+;; mean execution time: ~374 ms
+;; -----------------------------------
