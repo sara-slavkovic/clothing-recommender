@@ -22,7 +22,8 @@
 (defn same-label?
   "Checks if all samples have the same label."
   [dataset label-key]
-  (apply = (map label-key dataset)))
+  (let [first-label (label-key (first dataset))]
+    (every? #(= first-label (label-key %)) dataset)))
 
 ;;-------------------------------
 ;; ID3

@@ -143,9 +143,9 @@
 ;; Benchmark results (Criterium)
 ;;
 ;; Training dataset:
-;; quick-bench mean execution time: ~31 ms
-;; with-progress-reporting mean execution time: ~51 ms
+;; quick-bench mean execution time: ~29 ms
+;; with-progress-reporting mean execution time: ~30 ms
 ;;
 ;; Larger dataset (5x duplicated training data):
-;; mean execution time: ~176 ms
+;; mean execution time: ~136 ms
 ;; -----------------------------------
