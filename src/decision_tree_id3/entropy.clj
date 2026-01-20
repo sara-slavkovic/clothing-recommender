@@ -8,8 +8,8 @@
   [dataset label-key]
   (let [total (count dataset)
         freqs (frequencies (map label-key dataset))]
-    (reduce
-      (fn [acc [_ count]]
+    (reduce-kv
+      (fn [acc _ count]
         (let [p (/ count total)]
           (if (zero? p)
             acc
