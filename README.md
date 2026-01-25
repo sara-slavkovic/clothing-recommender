@@ -13,6 +13,16 @@ The implementation is generic and can be applied to different **categorical data
 
 ---
 
+## Project Documentation
+
+A detailed explanation of the project evolution, design decisions, experiments,
+and critical findings is available in the **Wiki** section of this repository.
+
+See: **[Wiki – Decision Tree (ID3) From Scratch in Clojure](https://github.com/sara-slavkovic/decision-tree-id3/wiki)**
+
+
+---
+
 ## Datasets
 
 The algorithm was evaluated on three datasets obtained from Kaggle:
@@ -146,6 +156,9 @@ A clean experimental interface is provided in `experiment.clj`
 
 `run-id3`
 
+Executes the full ID3 pipeline: preprocessing, train/test split, training,
+prediction and evaluation.
+
     (run-id3 dataset label-key positive-label)
 
 Returns:
@@ -154,6 +167,16 @@ Returns:
     :train-size ...
     :test-size ...
     :metrics {:accuracy ... :precision ... :recall ... :f1 ...}}
+
+Example usage:
+
+    (require '[decision-tree-id3.csv-loader :as loader])
+    (require '[decision-tree-id3.experiment :as exp])
+    
+    (def dataset
+    (loader/load-csv->maps "csv/loan_approval_dataset.csv"))
+    
+    (exp/run-id3 dataset :loan_status "Approved")
 
 This API allows quick experimentation on different datasets without duplicating pipeline logic. It is not a web service API, but a library-level API.
 
@@ -164,6 +187,10 @@ Benchmarks **ID3 tree construction** only using Criterium `quick-bench`.
     (bench-id3 dataset label-key)
 
 The function prints a full Criterium report and returns dataset sizes.
+
+Example usage:
+
+    (exp/bench-id3 dataset :loan_status)
 
 ---
 
@@ -180,13 +207,16 @@ Tree construction time:
 
 Outliers may appear due to JVM warm-up, GC, and OS scheduling. Mean and quantiles are reported.
 
-### Optimization Results
+### Optimization Summary
 
 | Optimization                     | 	Effect                   |
 |----------------------------------|---------------------------|
 | Entropy memoization              | 	~2.5× speedup            |
 | Reduced intermediate allocations | 	Lower GC pressure        |
 | Core pipeline refactoring        | 	Removed duplicated logic |
+
+These optimizations were applied incrementally during development, and the reported speedup reflects the combined effect observed in Criterium benchmarks.
+
 
 ### Results Summary
 
@@ -232,7 +262,7 @@ All tests are located in the `test/` directory and follow the same namespace str
 ---
 
 ## References
-- Quinlan, J.R. - _Induction of Decision Trees (ID3)_
+- Quinlan, J.R. (1986), _Induction of Decision Trees_
 - [Decision Tree in Machine Learning](https://www.geeksforgeeks.org/machine-learning/decision-tree-introduction-example/)
 - [Decision Trees: ID3 Algorithm Explained](https://medium.com/data-science/decision-trees-for-classification-id3-algorithm-explained-89df76e72df1)
 - [ID3, C4.5, CART and Pruning](https://bitmask93.github.io/ml-blog/ID3-C4-5-CART-and-Pruning/)
